@@ -1,5 +1,17 @@
 {
   "permissions": {
+    "allow": [
+      "Read(//opt/homebrew/Cellar/node/20.1.0/bin/**)",
+      "Read(//opt/homebrew/opt/**)",
+      "Bash(brew list:*)",
+      "Bash(brew unlink:*)",
+      "Bash(brew link:*)",
+      "Read(//usr/local/include/**)",
+      "Read(//usr/local/include/node/**)",
+      "Read(//opt/homebrew/Cellar/node/**)",
+      "Bash(/opt/homebrew/bin/brew --version)",
+      "Bash(npx tsc:*)"
+    ],
     "additionalDirectories": [
       "/Users/Florent/Documents/projects/penss-smartphone-app/docs"
     ]

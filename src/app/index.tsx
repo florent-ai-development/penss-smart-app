@@ -1,98 +1,117 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { GradientScreen } from '../components/GradientScreen';
+import { HomeMenuItem } from '../components/HomeMenuItem';
+import { StressRepository } from '../storage/stressRepository';
+import { Colors, Typography, Spacing } from '../constants';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+const stressRepo = new StressRepository();
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+function todayString(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+
+  const handleStressPress = useCallback(async () => {
+    const existing = await stressRepo.getByDate(todayString());
+    if (existing) {
+      Alert.alert(
+        'Déjà enregistré',
+        "Vous avez déjà évalué votre stress aujourd'hui. Revenez demain pour une nouvelle mesure.",
+        [{ text: 'OK' }]
+      );
+    } else {
+      router.push('/stress');
+    }
+  }, []);
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <GradientScreen>
+      <View style={[styles.container, { paddingTop: insets.top + Spacing.md }]}>
+        {/* Top Bar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.push('/settings')} style={styles.iconButton}>
+            <Ionicons name="settings" size={28} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+        {/* Central Logo Area */}
+        <View style={styles.logoArea}>
+          <TouchableOpacity onPress={() => router.push('/new-event/step-1')} style={styles.logoContainer}>
+            <Ionicons name="flash" size={60} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.logoText}>Taper pour saisir un nouvel événement.</Text>
+        </View>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+        {/* Menu List */}
+        <View style={styles.menuList}>
+          <HomeMenuItem
+            icon={<Ionicons name="flash" size={24} color={Colors.white} />}
+            label="Mes événements"
+            onPress={() => router.push('/events')}
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
+          <HomeMenuItem
+            icon={<Ionicons name="archive" size={24} color={Colors.white} />}
+            label="Mes événements archivés"
+            onPress={() => router.push('/events/archived')}
           />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+          <HomeMenuItem
+            icon={<MaterialCommunityIcons name="pulse" size={24} color={Colors.white} />}
+            label="Évaluation du stress"
+            onPress={handleStressPress}
+          />
+          <HomeMenuItem
+            icon={<Ionicons name="bar-chart" size={24} color={Colors.white} />}
+            label="Mes statistiques"
+            onPress={() => router.push('/statistics')}
+          />
+        </View>
+      </View>
+    </GradientScreen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: Spacing.screenHorizontalPadding,
+  },
+  topBar: {
     flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
   },
-  heroSection: {
+  iconButton: {
+    padding: Spacing.sm,
+  },
+  logoArea: {
+    alignItems: 'center',
+    marginTop: Spacing.xxl + Spacing.lg,
+  },
+  logoContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
   },
-  title: {
-    textAlign: 'center',
+  logoText: {
+    ...Typography.body,
+    color: Colors.textOnGradient,
+    marginTop: Spacing.md,
   },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  menuList: {
+    marginTop: Spacing.xl,
+    gap: Spacing.md,
   },
 });

@@ -40,29 +40,7 @@ Already installed (do NOT reinstall):
 
 ---
 
-## Step 2 — Install missing dependencies
-
-Run these installs before writing any code:
-
-```bash
-npx expo install @react-native-async-storage/async-storage
-npx expo install expo-linear-gradient
-npx expo install expo-crypto
-npx expo install @expo/vector-icons
-npx expo install date-fns
-npx expo install react-native-gifted-charts
-```
-
-> `@expo/vector-icons` ships with Expo but must be explicitly listed for TypeScript types.
-> `react-native-gifted-charts` requires `react-native-svg` — install it too:
-
-```bash
-npx expo install react-native-svg
-```
-
----
-
-## Step 3 — Clean the boilerplate
+## Step 2 — Clean the boilerplate
 
 Delete all existing boilerplate before starting:
 
@@ -72,7 +50,7 @@ Delete all existing boilerplate before starting:
 
 ---
 
-## Step 4 — Build in this exact order
+## Step 3 — Build in this exact order
 
 Work through each phase completely before moving to the next. Do not skip phases.
 
@@ -222,7 +200,7 @@ Root layout for Expo Router. Configure a `Stack` navigator. Hide the default hea
 <Stack screenOptions={{ headerShown: false }} />
 ```
 
-### Phase 5 — New Event flow context and layout
+### Phase 4 — New Event flow context and layout
 
 **`src/context/NewEventContext.tsx`**
 Implement the `NewEventDraft` interface and `NewEventContextValue` exactly as defined in `docs/navigation.md`. Key points:
