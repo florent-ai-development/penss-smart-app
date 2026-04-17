@@ -6,19 +6,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { EventCard } from '../../components/EventCard';
 import { EventRepository } from '../../storage/eventRepository';
-import type { AppEvent } from '../../types';
+import { CustomEmotionsRepository } from '../../storage/customEmotionsRepository';
+import type { AppEvent, Emotion } from '../../types';
 import { Colors, Spacing } from '../../constants';
 
 const repo = new EventRepository();
+const customRepo = new CustomEmotionsRepository();
 
 export default function ArchivedEventsScreen() {
   const [events, setEvents] = useState<AppEvent[]>([]);
+  const [customEmotions, setCustomEmotions] = useState<Emotion[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       repo.getArchived().then(data =>
         setEvents(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
       );
+      customRepo.getAll().then(setCustomEmotions);
     }, [])
   );
 
@@ -40,6 +44,7 @@ export default function ArchivedEventsScreen() {
             <EventCard
               event={item}
               archived
+              customEmotions={customEmotions}
               onPress={() => router.push({ pathname: '/events/[id]', params: { id: item.id } })}
             />
           )}

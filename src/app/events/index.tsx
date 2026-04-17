@@ -10,20 +10,24 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { EventCard } from '../../components/EventCard';
 import { PillButton } from '../../components/PillButton';
 import { EventRepository } from '../../storage/eventRepository';
-import type { AppEvent } from '../../types';
+import { CustomEmotionsRepository } from '../../storage/customEmotionsRepository';
+import type { AppEvent, Emotion } from '../../types';
 import { Colors, Spacing } from '../../constants';
 
 const repo = new EventRepository();
+const customRepo = new CustomEmotionsRepository();
 
 export default function EventsScreen() {
   const insets = useSafeAreaInsets();
   const [events, setEvents] = useState<AppEvent[]>([]);
+  const [customEmotions, setCustomEmotions] = useState<Emotion[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       repo.getActive().then(data =>
         setEvents(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
       );
+      customRepo.getAll().then(setCustomEmotions);
     }, [])
   );
 
@@ -49,6 +53,7 @@ export default function EventsScreen() {
           renderItem={({ item }) => (
             <EventCard
               event={item}
+              customEmotions={customEmotions}
               onPress={() => router.push({ pathname: '/events/[id]', params: { id: item.id } })}
             />
           )}

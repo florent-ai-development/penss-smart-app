@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   Modal, View, Text, TextInput, TouchableOpacity,
-  FlatList, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView,
+  StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { randomUUID } from 'expo-crypto';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomEmotionsRepository, MAX_CUSTOM_EMOTIONS } from '../storage/customEmotionsRepository';
 import { PolarityToggle } from './PolarityToggle';
+import { EmojiPickerModal } from './EmojiPickerModal';
 import type { Emotion } from '../types';
 import { Colors, Spacing } from '../constants';
 
@@ -19,20 +20,21 @@ const MAX_LABEL_LENGTH = 15;
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onChanged: () => void; // called when list changes so step-2 reloads
+  onChanged: () => void;
 }
 
-type View = 'list' | 'form';
+type FormView = 'list' | 'form';
 
 export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onChanged }) => {
   const [emotions, setEmotions] = useState<Emotion[]>([]);
-  const [view, setView] = useState<'list' | 'form'>('list');
+  const [formView, setFormView] = useState<FormView>('list');
 
   // Form state
   const [polarity, setPolarity] = useState<'negative' | 'positive'>('negative');
   const [emoji, setEmoji] = useState(DEFAULT_EMOJI_NEGATIVE);
   const [label, setLabel] = useState('');
   const [saving, setSaving] = useState(false);
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
 
   const load = async () => {
     const data = await repo.getAll();
@@ -40,7 +42,7 @@ export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onCh
   };
 
   useEffect(() => {
-    if (visible) { load(); setView('list'); }
+    if (visible) { load(); setFormView('list'); }
   }, [visible]);
 
   const handlePolarityChange = (p: 'negative' | 'positive') => {
@@ -64,13 +66,13 @@ export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onCh
       await repo.save({
         id: `custom_${randomUUID()}`,
         label: label.trim(),
-        emoji: emoji.trim() || (polarity === 'positive' ? DEFAULT_EMOJI_POSITIVE : DEFAULT_EMOJI_NEGATIVE),
+        emoji,
         polarity,
       });
       await load();
       onChanged();
       resetForm();
-      setView('list');
+      setFormView('list');
     } catch (e: any) {
       Alert.alert('Erreur', e?.message ?? 'Impossible d\'ajouter l\'émotion.');
     } finally {
@@ -104,10 +106,10 @@ export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onCh
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.container}>
-          {/* ── Header ── */}
+          {/* Header */}
           <View style={styles.header}>
-            {view === 'form' ? (
-              <TouchableOpacity onPress={() => { setView('list'); resetForm(); }}>
+            {formView === 'form' ? (
+              <TouchableOpacity onPress={() => { setFormView('list'); resetForm(); }}>
                 <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
               </TouchableOpacity>
             ) : (
@@ -116,13 +118,13 @@ export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onCh
               </TouchableOpacity>
             )}
             <Text style={styles.headerTitle}>
-              {view === 'list' ? 'Mes émotions personnalisées' : 'Nouvelle émotion'}
+              {formView === 'list' ? 'Mes émotions personnalisées' : 'Nouvelle émotion'}
             </Text>
             <View style={{ width: 24 }} />
           </View>
 
-          {/* ── List view ── */}
-          {view === 'list' && (
+          {/* List view */}
+          {formView === 'list' && (
             <ScrollView contentContainerStyle={styles.listContent}>
               <Text style={styles.quota}>
                 {emotions.length}/{MAX_CUSTOM_EMOTIONS} émotions personnalisées
@@ -151,7 +153,7 @@ export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onCh
 
               <TouchableOpacity
                 style={[styles.addBtn, !canAdd && styles.addBtnDisabled]}
-                onPress={() => canAdd && setView('form')}
+                onPress={() => canAdd && setFormView('form')}
                 disabled={!canAdd}
               >
                 <Ionicons name="add-circle-outline" size={20} color={canAdd ? Colors.white : 'rgba(255,255,255,0.4)'} />
@@ -162,30 +164,20 @@ export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onCh
             </ScrollView>
           )}
 
-          {/* ── Form view ── */}
-          {view === 'form' && (
+          {/* Form view */}
+          {formView === 'form' && (
             <ScrollView contentContainerStyle={styles.formContent} keyboardShouldPersistTaps="handled">
               {/* Polarity */}
               <Text style={styles.fieldLabel}>Catégorie</Text>
               <PolarityToggle value={polarity} onChange={handlePolarityChange} />
 
-              {/* Emoji */}
+              {/* Emoji picker */}
               <Text style={styles.fieldLabel}>Émoji</Text>
-              <View style={styles.emojiRow}>
-                <View style={styles.emojiPreview}>
-                  <Text style={{ fontSize: 36 }}>{emoji || '❓'}</Text>
-                </View>
-                <TextInput
-                  style={styles.emojiInput}
-                  value={emoji}
-                  onChangeText={v => setEmoji(v)}
-                  placeholder="Tapez un émoji..."
-                  placeholderTextColor={Colors.textSecondary}
-                  maxLength={4}
-                  returnKeyType="next"
-                />
-              </View>
-              <Text style={styles.hint}>Ouvrez le clavier émoji de votre téléphone pour en choisir un.</Text>
+              <TouchableOpacity style={styles.emojiBtn} onPress={() => setEmojiPickerVisible(true)}>
+                <Text style={styles.emojiBtnIcon}>{emoji}</Text>
+                <Text style={styles.emojiBtnLabel}>Choisir un émoji</Text>
+                <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+              </TouchableOpacity>
 
               {/* Label */}
               <View style={styles.labelHeader}>
@@ -219,6 +211,14 @@ export const CustomizeEmotionsModal: React.FC<Props> = ({ visible, onClose, onCh
           )}
         </View>
       </KeyboardAvoidingView>
+
+      {/* Emoji picker modal — rendered outside KeyboardAvoidingView to avoid z-index issues */}
+      <EmojiPickerModal
+        visible={emojiPickerVisible}
+        onClose={() => setEmojiPickerVisible(false)}
+        onEmojiSelected={(e) => { setEmoji(e); setEmojiPickerVisible(false); }}
+        currentEmoji={emoji}
+      />
     </Modal>
   );
 };
@@ -304,37 +304,24 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
-  emojiRow: {
+  emojiBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
-  },
-  emojiPreview: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: Colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#D0DBE8',
-  },
-  emojiInput: {
-    flex: 1,
-    height: 60,
     backgroundColor: Colors.white,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#D0DBE8',
     paddingHorizontal: Spacing.md,
-    fontSize: 24,
-    color: Colors.textPrimary,
+    paddingVertical: 14,
+    gap: Spacing.md,
   },
-  hint: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: -Spacing.sm,
-    fontStyle: 'italic',
+  emojiBtnIcon: {
+    fontSize: 28,
+  },
+  emojiBtnLabel: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.textPrimary,
   },
   labelHeader: {
     flexDirection: 'row',

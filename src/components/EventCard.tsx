@@ -3,17 +3,22 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing } from '../constants';
 import { EmotionChip } from './EmotionChip';
-import { AppEvent } from '../types';
+import { AppEvent, Emotion } from '../types';
 import { DEFAULT_EMOTIONS } from '../data/emotions';
 
 interface EventCardProps {
   event: AppEvent;
   onPress: () => void;
   archived?: boolean;
+  customEmotions?: Emotion[];
 }
 
-function getEmotionLabel(emotionId: string): string {
-  return DEFAULT_EMOTIONS.find(e => e.id === emotionId)?.label ?? emotionId;
+function getEmotionLabel(emotionId: string, customEmotions: Emotion[]): string {
+  return (
+    DEFAULT_EMOTIONS.find(e => e.id === emotionId)?.label ??
+    customEmotions.find(e => e.id === emotionId)?.label ??
+    emotionId
+  );
 }
 
 function formatEventDate(iso: string): string {
@@ -26,7 +31,7 @@ function formatEventDate(iso: string): string {
   return `${day}/${month}/${year} - ${hh}:${mm}`;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, onPress, archived = false }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, onPress, archived = false, customEmotions = [] }) => {
   const iconName = archived ? 'archive' : 'flash';
   const iconBg = archived ? Colors.iconBgGray : Colors.iconBgBlue;
 
@@ -72,7 +77,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onPress, archived =
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs }}>
             {event.emotions.map(emotion => (
-              <EmotionChip key={emotion.emotionId} label={getEmotionLabel(emotion.emotionId)} />
+              <EmotionChip key={emotion.emotionId} label={getEmotionLabel(emotion.emotionId, customEmotions)} />
             ))}
           </View>
         </View>

@@ -9,12 +9,14 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Card } from '../../components/Card';
 import { PillButton } from '../../components/PillButton';
 import { EventRepository } from '../../storage/eventRepository';
+import { CustomEmotionsRepository } from '../../storage/customEmotionsRepository';
 import { DEFAULT_EMOTIONS } from '../../data/emotions';
 import { DEFAULT_COGNITIVE_BIASES } from '../../data/biases';
-import type { AppEvent } from '../../types';
+import type { AppEvent, Emotion } from '../../types';
 import { Colors, Spacing } from '../../constants';
 
 const repo = new EventRepository();
+const customRepo = new CustomEmotionsRepository();
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -26,8 +28,12 @@ function formatDate(iso: string): string {
   return `${day}/${month}/${year} - ${hh}:${mm}`;
 }
 
-function getEmotionLabel(id: string) {
-  return DEFAULT_EMOTIONS.find(e => e.id === id)?.label ?? id;
+function getEmotionLabel(id: string, customEmotions: Emotion[]) {
+  return (
+    DEFAULT_EMOTIONS.find(e => e.id === id)?.label ??
+    customEmotions.find(e => e.id === id)?.label ??
+    id
+  );
 }
 
 function getBiasLabel(id: string) {
@@ -38,12 +44,14 @@ export default function EventDetailScreen() {
   const { id: rawId } = useLocalSearchParams<{ id: string | string[] }>();
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
   const [event, setEvent] = useState<AppEvent | null>(null);
+  const [customEmotions, setCustomEmotions] = useState<Emotion[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       if (id) repo.getById(id).then(setEvent);
+      customRepo.getAll().then(setCustomEmotions);
     }, [id])
   );
 
@@ -91,7 +99,7 @@ export default function EventDetailScreen() {
             <View key={e.emotionId}>
               {i > 0 && <View style={styles.divider} />}
               <View style={styles.emotionRow}>
-                <Text style={styles.cardBody}>{getEmotionLabel(e.emotionId)}</Text>
+                <Text style={styles.cardBody}>{getEmotionLabel(e.emotionId, customEmotions)}</Text>
                 <Text style={styles.intensityText}>Intensité : {e.finalIntensity}/100</Text>
               </View>
             </View>
