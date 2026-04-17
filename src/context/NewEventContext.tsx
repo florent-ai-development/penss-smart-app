@@ -2,6 +2,12 @@ import React, { createContext, useContext, useRef, useState } from 'react';
 import { randomUUID } from 'expo-crypto';
 import { AppEvent, AutomaticThought, RationalThought } from '../types';
 import { EventRepository } from '../storage/eventRepository';
+import { DEFAULT_EMOTIONS } from '../data/emotions';
+
+interface CustomEmotionOverride {
+  id: string;
+  emoji: string;
+}
 
 interface NewEventDraft {
   createdAt: string;
@@ -10,6 +16,7 @@ interface NewEventDraft {
   automaticThoughts: AutomaticThought[];
   rationalThoughts: RationalThought[];
   finalEmotionIntensities: Record<string, number>;
+  customEmotionEmojis: Record<string, string>; // emotionId -> custom emoji
 }
 
 interface NewEventContextValue {
@@ -21,6 +28,7 @@ interface NewEventContextValue {
   addRationalThought: (thought: RationalThought) => void;
   removeRationalThought: (index: number) => void;
   setFinalIntensity: (emotionId: string, value: number) => void;
+  setCustomEmotionEmoji: (emotionId: string, emoji: string) => void;
   saveDraft: () => Promise<void>;
 }
 
@@ -40,6 +48,7 @@ export const NewEventProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     automaticThoughts: [],
     rationalThoughts: [],
     finalEmotionIntensities: {},
+    customEmotionEmojis: {},
   });
 
   const setSituation = (text: string) => {
@@ -96,6 +105,16 @@ export const NewEventProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   };
 
+  const setCustomEmotionEmoji = (emotionId: string, emoji: string) => {
+    setDraft(prev => ({
+      ...prev,
+      customEmotionEmojis: {
+        ...prev.customEmotionEmojis,
+        [emotionId]: emoji,
+      },
+    }));
+  };
+
   const saveDraft = async () => {
     const event: AppEvent = {
       id: randomUUID(),
@@ -105,6 +124,7 @@ export const NewEventProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         emotionId: id,
         initialIntensity: 50,
         finalIntensity: draft.finalEmotionIntensities[id] ?? 50,
+        customEmoji: draft.customEmotionEmojis[id],
       })),
       automaticThoughts: draft.automaticThoughts,
       rationalThoughts: draft.rationalThoughts,
@@ -126,6 +146,7 @@ export const NewEventProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         addRationalThought,
         removeRationalThought,
         setFinalIntensity,
+        setCustomEmotionEmoji,
         saveDraft,
       }}
     >

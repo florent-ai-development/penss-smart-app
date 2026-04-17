@@ -19,16 +19,16 @@ export const EmotionButton: React.FC<EmotionButtonProps> = ({ emoji, label, sele
       style={{
         width: buttonWidth,
         height: 80,
-        backgroundColor: selected ? 'rgba(0, 200, 224, 0.22)' : Colors.cardDark,
+        backgroundColor: selected ? '#0D47A1' : Colors.cardDark,
         borderRadius: Spacing.emotionButtonBorderRadius,
         borderWidth: 2,
-        borderColor: selected ? Colors.accent : 'rgba(255,255,255,0.08)',
+        borderColor: selected ? '#42A5F5' : 'rgba(255,255,255,0.08)',
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
       <Text style={{ fontSize: 24, marginBottom: Spacing.xs }}>{emoji}</Text>
-      <Text style={[Typography.emotionLabel, selected && { color: Colors.accent, fontWeight: '700' }]}>
+      <Text style={[Typography.emotionLabel, selected && { color: '#BBDEFB', fontWeight: '700' }]}>
         {label}
       </Text>
     </TouchableOpacity>

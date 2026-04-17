@@ -49,6 +49,7 @@ export interface EventEmotion {
   emotionId: string;
   initialIntensity: number;
   finalIntensity: number;
+  customEmoji?: string;
 }
 
 // ─────────────────────────────────────────────

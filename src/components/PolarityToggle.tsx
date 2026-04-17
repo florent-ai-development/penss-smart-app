@@ -31,14 +31,17 @@ export const PolarityToggle: React.FC<PolarityToggleProps> = ({ value, onChange 
             paddingVertical: Spacing.sm,
             paddingHorizontal: Spacing.md,
             borderRadius: Spacing.buttonBorderRadius - Spacing.xs,
-            backgroundColor: value === segment.value ? '#2A2F3E' : 'transparent',
+            backgroundColor: value === segment.value ? '#0D47A1' : 'transparent',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <Text
             style={{
               ...Typography.body,
-              color: value === segment.value ? Colors.white : 'rgba(255,255,255,0.5)',
+              color: value === segment.value ? '#BBDEFB' : 'rgba(255,255,255,0.5)',
               fontWeight: value === segment.value ? '600' : '400',
+              textAlign: 'center',
             }}
           >
             {segment.label}

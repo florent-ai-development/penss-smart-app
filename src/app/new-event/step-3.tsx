@@ -7,7 +7,6 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientScreen } from '../../components/GradientScreen';
-import { StepProgress } from '../../components/StepProgress';
 import { StepDots } from '../../components/StepDots';
 import { PillButton } from '../../components/PillButton';
 import { StressSlider } from '../../components/StressSlider';
@@ -27,6 +26,16 @@ export default function Step3Screen() {
     setBeliefLevel(50);
   };
 
+  const handleNext = () => {
+    // Auto-add the current thought if there's text before navigating
+    if (text.trim().length > 0) {
+      addAutomaticThought({ text: text.trim(), beliefLevel });
+      setText('');
+      setBeliefLevel(50);
+    }
+    router.push('/new-event/step-4');
+  };
+
   return (
     <GradientScreen>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -36,14 +45,37 @@ export default function Step3Screen() {
         >
           {/* Header */}
           <View style={styles.headerRow}>
-            <StepProgress current={3} total={5} />
-            <Text style={styles.title}>Détail des pensées automatiques</Text>
+            <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+            </TouchableOpacity>
+            <Text style={styles.title}>Pensées automatiques</Text>
             <TouchableOpacity onPress={() => router.replace('/')} hitSlop={8}>
               <Ionicons name="close-circle" size={28} color={Colors.white} />
             </TouchableOpacity>
           </View>
 
-          {/* Previously added thoughts */}
+          {/* Text area */}
+          <TextInput
+            style={styles.textArea}
+            value={text}
+            onChangeText={setText}
+            placeholder="Décrivez ici les pensées automatiques qui vous viennent en tête..."
+            placeholderTextColor={Colors.textSecondary}
+            multiline
+            textAlignVertical="top"
+            scrollEnabled={false}
+          />
+
+          {/* Belief slider */}
+          <Text style={styles.sliderLabel}>Quel est le niveau de croyance de vos pensées automatiques ?</Text>
+          <StressSlider
+            value={beliefLevel}
+            min={0}
+            max={100}
+            onChange={setBeliefLevel}
+          />
+
+          {/* Previously added thoughts — shown just above the add button */}
           {draft.automaticThoughts.length > 0 && (
             <View style={styles.thoughtsList}>
               {draft.automaticThoughts.map((t, i) => (
@@ -60,33 +92,12 @@ export default function Step3Screen() {
             </View>
           )}
 
-          {/* Text area */}
-          <TextInput
-            style={styles.textArea}
-            value={text}
-            onChangeText={setText}
-            placeholder="Décrivez ici les pensées automatiques qui vous viennent en tête..."
-            placeholderTextColor="rgba(255,255,255,0.6)"
-            multiline
-            textAlignVertical="top"
-            scrollEnabled={false}
-          />
-
-          {/* Belief slider */}
-          <Text style={styles.sliderLabel}>Quel est le niveau de croyance de vos pensées automatiques ?</Text>
-          <StressSlider
-            value={beliefLevel}
-            min={0}
-            max={100}
-            onChange={setBeliefLevel}
-          />
-
           {/* Add button */}
           <PillButton label="Ajouter cette pensée" onPress={handleAdd} variant="outline" />
 
           <StepDots current={3} total={5} />
 
-          <PillButton label="Suite →" onPress={() => router.push('/new-event/step-4')} variant="primary" />
+          <PillButton label="Suite →" onPress={handleNext} variant="primary" />
         </ScrollView>
       </KeyboardAvoidingView>
     </GradientScreen>
@@ -130,14 +141,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   thoughtBelief: {
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.7)',
     fontSize: 12,
   },
   textArea: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 14,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontSize: 14,
     minHeight: 120,
     textAlignVertical: 'top',

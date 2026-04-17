@@ -7,7 +7,6 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientScreen } from '../../components/GradientScreen';
-import { StepProgress } from '../../components/StepProgress';
 import { StepDots } from '../../components/StepDots';
 import { PillButton } from '../../components/PillButton';
 import { StressSlider } from '../../components/StressSlider';
@@ -37,6 +36,17 @@ export default function Step4Screen() {
     setSelectedBiasIds([]);
   };
 
+  const handleNext = () => {
+    // Auto-add the current rational thought if there's text before navigating
+    if (text.trim().length > 0) {
+      addRationalThought({ text: text.trim(), beliefLevel, selectedBiasIds });
+      setText('');
+      setBeliefLevel(50);
+      setSelectedBiasIds([]);
+    }
+    router.push('/new-event/step-5');
+  };
+
   const getBiasLabel = (id: string) =>
     DEFAULT_COGNITIVE_BIASES.find(b => b.id === id)?.label ?? id;
 
@@ -49,34 +59,14 @@ export default function Step4Screen() {
         >
           {/* Header */}
           <View style={styles.headerRow}>
-            <StepProgress current={4} total={5} />
+            <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+              <Ionicons name="arrow-back" size={24} color={Colors.white} />
+            </TouchableOpacity>
             <Text style={styles.title}>Pensées rationnelles</Text>
             <TouchableOpacity onPress={() => router.replace('/')} hitSlop={8}>
               <Ionicons name="close-circle" size={28} color={Colors.white} />
             </TouchableOpacity>
           </View>
-
-          {/* Previously added rational thoughts */}
-          {draft.rationalThoughts.length > 0 && (
-            <View style={styles.thoughtsList}>
-              {draft.rationalThoughts.map((t, i) => (
-                <View key={i} style={styles.thoughtRow}>
-                  <Text style={styles.thoughtText} numberOfLines={2}>{t.text}</Text>
-                  <View style={styles.thoughtMeta}>
-                    <Text style={styles.thoughtBelief}>Croyance : {t.beliefLevel}%</Text>
-                    <TouchableOpacity onPress={() => removeRationalThought(i)} hitSlop={8}>
-                      <Ionicons name="close" size={16} color="rgba(255,255,255,0.7)" />
-                    </TouchableOpacity>
-                  </View>
-                  {t.selectedBiasIds.length > 0 && (
-                    <Text style={styles.biasLabels}>
-                      Biais : {t.selectedBiasIds.map(getBiasLabel).join(', ')}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
 
           {/* Bias question */}
           <Text style={styles.question}>Votre pensée contient-elle des biais ?</Text>
@@ -101,7 +91,7 @@ export default function Step4Screen() {
             value={text}
             onChangeText={setText}
             placeholder="Prenez du recul par rapport aux pensées automatiques en listant ici des réponses rationnelles face à l'événement ou la situation..."
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor={Colors.textSecondary}
             multiline
             textAlignVertical="top"
             scrollEnabled={false}
@@ -111,12 +101,34 @@ export default function Step4Screen() {
           <Text style={styles.sliderLabel}>Quel est le niveau de croyance dans les pensées rationnelles ?</Text>
           <StressSlider value={beliefLevel} min={0} max={100} onChange={setBeliefLevel} />
 
+          {/* Previously added rational thoughts — just above the add button */}
+          {draft.rationalThoughts.length > 0 && (
+            <View style={styles.thoughtsList}>
+              {draft.rationalThoughts.map((t, i) => (
+                <View key={i} style={styles.thoughtRow}>
+                  <Text style={styles.thoughtText} numberOfLines={2}>{t.text}</Text>
+                  <View style={styles.thoughtMeta}>
+                    <Text style={styles.thoughtBelief}>Croyance : {t.beliefLevel}%</Text>
+                    <TouchableOpacity onPress={() => removeRationalThought(i)} hitSlop={8}>
+                      <Ionicons name="close" size={16} color="rgba(255,255,255,0.7)" />
+                    </TouchableOpacity>
+                  </View>
+                  {t.selectedBiasIds.length > 0 && (
+                    <Text style={styles.biasLabels}>
+                      Biais : {t.selectedBiasIds.map(getBiasLabel).join(', ')}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
           {/* Add button */}
-          <PillButton label="Ajouter cette pensée" onPress={handleAdd} variant="outline" />
+          <PillButton label="Ajouter cette pensée rationnelle" onPress={handleAdd} variant="outline" />
 
           <StepDots current={4} total={5} />
 
-          <PillButton label="Suite →" onPress={() => router.push('/new-event/step-5')} variant="primary" />
+          <PillButton label="Suite →" onPress={handleNext} variant="primary" />
         </ScrollView>
       </KeyboardAvoidingView>
     </GradientScreen>
@@ -149,15 +161,15 @@ const styles = StyleSheet.create({
   },
   thoughtText: { color: Colors.white, fontSize: 13, marginBottom: 4 },
   thoughtMeta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  thoughtBelief: { color: 'rgba(255,255,255,0.6)', fontSize: 12 },
-  biasLabels: { color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 2 },
+  thoughtBelief: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
+  biasLabels: { color: 'rgba(255,255,255,0.55)', fontSize: 11, marginTop: 2 },
   question: { fontSize: 16, fontWeight: '600', color: Colors.white },
   biasList: { gap: Spacing.sm },
   textArea: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 14,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontSize: 14,
     minHeight: 120,
     textAlignVertical: 'top',

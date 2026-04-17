@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -31,6 +31,11 @@ export const StressSlider: React.FC<StressSliderProps> = ({
 }) => {
   const sliderWidth = useRef(0);
   const translateX = useSharedValue(((value - min) / (max - min)) * (sliderWidth.current || 0));
+
+  // Sync position when value is changed externally (e.g. reset after adding a thought)
+  useEffect(() => {
+    translateX.value = ((value - min) / (max - min)) * sliderWidth.current;
+  }, [value]);
 
   const progress = useDerivedValue(() => {
     return translateX.value / sliderWidth.current;

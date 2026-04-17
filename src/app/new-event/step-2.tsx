@@ -6,7 +6,6 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientScreen } from '../../components/GradientScreen';
-import { StepProgress } from '../../components/StepProgress';
 import { StepDots } from '../../components/StepDots';
 import { PillButton } from '../../components/PillButton';
 import { PolarityToggle } from '../../components/PolarityToggle';
@@ -53,7 +52,9 @@ export default function Step2Screen() {
       >
         {/* Header row */}
         <View style={styles.headerRow}>
-          <StepProgress current={2} total={5} />
+          <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
           <Text style={styles.title}>L'émotion ressentie</Text>
           <TouchableOpacity onPress={() => router.replace('/')} hitSlop={8}>
             <Ionicons name="close-circle" size={28} color={Colors.white} />

@@ -58,7 +58,7 @@ export default function Step1Screen() {
             value={draft.situation}
             onChangeText={setSituation}
             placeholder="Décrivez ici l'événement ou la situation qui a déclenché la contrariété..."
-            placeholderTextColor="rgba(255,255,255,0.6)"
+            placeholderTextColor={Colors.textSecondary}
             multiline
             textAlignVertical="top"
             scrollEnabled={false}
@@ -109,10 +109,10 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   textArea: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 14,
-    color: Colors.white,
+    color: Colors.textPrimary,
     fontSize: 14,
     minHeight: 140,
     textAlignVertical: 'top',

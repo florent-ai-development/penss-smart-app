@@ -6,19 +6,29 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientScreen } from '../../components/GradientScreen';
-import { StepProgress } from '../../components/StepProgress';
 import { StepDots } from '../../components/StepDots';
 import { PillButton } from '../../components/PillButton';
 import { StressSlider } from '../../components/StressSlider';
 import { useNewEventContext } from '../../context/NewEventContext';
 import { DEFAULT_EMOTIONS } from '../../data/emotions';
+import { CustomEmotionsRepository } from '../../storage/customEmotionsRepository';
+import type { Emotion } from '../../types';
 import { Colors, Spacing } from '../../constants';
+
+const customRepo = new CustomEmotionsRepository();
 
 export default function Step5Screen() {
   const insets = useSafeAreaInsets();
   const { draft, setFinalIntensity, saveDraft } = useNewEventContext();
 
-  const getEmotion = (id: string) => DEFAULT_EMOTIONS.find(e => e.id === id);
+  const [customEmotions, setCustomEmotions] = React.useState<Emotion[]>([]);
+
+  React.useEffect(() => {
+    customRepo.getAll().then(setCustomEmotions);
+  }, []);
+
+  const getEmotion = (id: string): Emotion | undefined =>
+    [...DEFAULT_EMOTIONS, ...customEmotions].find(e => e.id === id);
 
   const handleSave = async () => {
     await saveDraft();
@@ -32,12 +42,18 @@ export default function Step5Screen() {
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <StepProgress current={5} total={5} />
-          <Text style={styles.title}>Nouvelle évaluation de l'émotion ressentie</Text>
+          <TouchableOpacity onPress={() => router.back()} hitSlop={8}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Réévaluation de l'émotion</Text>
           <TouchableOpacity onPress={() => router.replace('/')} hitSlop={8}>
             <Ionicons name="close-circle" size={28} color={Colors.white} />
           </TouchableOpacity>
         </View>
+
+        <Text style={styles.intro}>
+          Maintenant que vous avez identifié vos pensées, réévaluez l'intensité de chaque émotion.
+        </Text>
 
         {/* One block per selected emotion */}
         {draft.selectedEmotionIds.map(emotionId => {
@@ -45,8 +61,7 @@ export default function Step5Screen() {
           const finalValue = draft.finalEmotionIntensities[emotionId] ?? 50;
           return (
             <View key={emotionId} style={styles.emotionBlock}>
-              {/* Emotion chip display */}
-              <Text style={styles.sectionLabel}>Rappel de l'émotion ressentie</Text>
+              {/* Emotion chip */}
               <View style={styles.emotionChipRow}>
                 <View style={styles.emotionChip}>
                   <Text style={styles.emotionEmoji}>{emotion?.emoji ?? '❓'}</Text>
@@ -54,13 +69,9 @@ export default function Step5Screen() {
                 </View>
               </View>
 
-              {/* Reference slider (read-only) */}
-              <Text style={styles.sectionLabel}>Rappel de l'intensité de l'émotion initiale</Text>
-              <StressSlider value={50} min={0} max={100} onChange={() => {}} readonly />
-
-              {/* Editable slider */}
+              {/* Final intensity slider */}
               <Text style={styles.sectionLabel}>
-                Maintenant, quel est le niveau d'intensité de l'émotion initialement ressentie ?
+                Quel est maintenant le niveau d'intensité de cette émotion ?
               </Text>
               <StressSlider
                 value={finalValue}
@@ -99,6 +110,12 @@ const styles = StyleSheet.create({
     color: Colors.white,
     textAlign: 'center',
     marginHorizontal: Spacing.sm,
+  },
+  intro: {
+    color: Colors.white,
+    fontSize: 14,
+    lineHeight: 20,
+    opacity: 0.85,
   },
   emotionBlock: {
     gap: Spacing.md,
