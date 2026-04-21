@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -39,7 +39,11 @@ export default function HomeScreen() {
 
   return (
     <GradientScreen>
-      <View style={[styles.container, { paddingTop: insets.top + Spacing.md }]}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[styles.container, { paddingTop: insets.top + Spacing.md, paddingBottom: insets.bottom + Spacing.md }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Top Bar */}
         <View style={styles.topBar}>
           <TouchableOpacity onPress={() => router.push('/settings')} style={styles.iconButton}>
@@ -82,19 +86,24 @@ export default function HomeScreen() {
             </View>
           )}
           <HomeMenuItem
+            icon={<Ionicons name="time" size={24} color={Colors.white} />}
+            label="Historique du stress"
+            onPress={() => router.push('/stress/history')}
+          />
+          <HomeMenuItem
             icon={<Ionicons name="bar-chart" size={24} color={Colors.white} />}
             label="Mes statistiques"
             onPress={() => router.push('/statistics')}
           />
         </View>
-      </View>
+      </ScrollView>
     </GradientScreen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: Spacing.screenHorizontalPadding,
   },
   topBar: {
@@ -107,8 +116,7 @@ const styles = StyleSheet.create({
   },
   logoArea: {
     alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
+    paddingVertical: Spacing.xl,
   },
   appTitle: {
     color: Colors.white,
