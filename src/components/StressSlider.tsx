@@ -43,7 +43,7 @@ export const StressSlider: React.FC<StressSliderProps> = ({
 
   const animatedThumbStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateX: translateX.value - 11 }],
+      transform: [{ translateX: translateX.value - 14 }],
       opacity: readonly ? 0.5 : 1,
     };
   });
@@ -76,9 +76,9 @@ export const StressSlider: React.FC<StressSliderProps> = ({
             translateX.value = ((value - min) / (max - min)) * sliderWidth.current;
           }}
           style={{
-            height: 4,
+            height: 14,
             backgroundColor: Colors.sliderTrack,
-            borderRadius: 2,
+            borderRadius: 7,
             width: '100%',
             position: 'relative',
           }}
@@ -86,9 +86,9 @@ export const StressSlider: React.FC<StressSliderProps> = ({
           <Animated.View
             style={[
               {
-                height: 4,
+                height: 14,
                 backgroundColor: Colors.sliderThumb,
-                borderRadius: 2,
+                borderRadius: 7,
                 position: 'absolute',
                 left: 0,
               },
@@ -98,12 +98,12 @@ export const StressSlider: React.FC<StressSliderProps> = ({
           <Animated.View
             style={[
               {
-                width: 22,
-                height: 22,
+                width: 28,
+                height: 28,
                 backgroundColor: Colors.sliderThumb,
-                borderRadius: 11,
+                borderRadius: 14,
                 position: 'absolute',
-                top: -9,
+                top: -7,
                 shadowColor: Colors.black,
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.3,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, Alert, StyleSheet, ScrollView,
+  View, Text, Alert, StyleSheet,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,7 +42,11 @@ export default function StressEvaluationScreen() {
       createdAt: existing?.createdAt ?? new Date().toISOString(),
     };
     await repo.save(entry);
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
   };
 
   const handleSave = async () => {
@@ -64,11 +68,13 @@ export default function StressEvaluationScreen() {
 
   return (
     <GradientScreen>
-      <ScreenHeader title="Évaluation du stress" onBack={() => router.back()} />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScreenHeader title="Évaluation du stress" onBack={() => router.canGoBack() ? router.back() : router.replace('/')} />
+      <View style={styles.content}>
         {/* Title + date */}
-        <Text style={styles.title}>Votre niveau de stress global de la journée</Text>
-        <Text style={styles.dateText}>{formatTodayFr()}</Text>
+        <View style={styles.titleBlock}>
+          <Text style={styles.title}>Votre niveau de stress{'\n'}global de la journée</Text>
+          <Text style={styles.dateText}>{formatTodayFr()}</Text>
+        </View>
 
         {/* Emoji */}
         <View style={styles.emojiContainer}>
@@ -76,59 +82,74 @@ export default function StressEvaluationScreen() {
         </View>
 
         {/* Slider */}
-        <Text style={styles.sliderLabel}>Évaluez votre niveau de stress</Text>
-        <StressSlider
-          value={level}
-          min={0}
-          max={10}
-          onChange={setLevel}
-          leftLabel="0 – Calme"
-          rightLabel="10 – Extrême"
-        />
+        <View style={styles.sliderBlock}>
+          <Text style={styles.sliderLabel}>Évaluez votre niveau de stress</Text>
+          <StressSlider
+            value={level}
+            min={0}
+            max={10}
+            onChange={setLevel}
+            leftLabel="0 – Calme"
+            rightLabel="10 – Extrême"
+          />
+        </View>
 
         {/* Buttons */}
-        <PillButton
-          label="Voir l'historique"
-          onPress={() => router.push('/stress/history')}
-          variant="ghost"
-          icon={<Ionicons name="time" size={16} color={Colors.white} />}
-        />
-        <PillButton
-          label="Enregistrer cette mesure"
-          onPress={handleSave}
-          variant="primary"
-        />
-      </ScrollView>
+        <View style={styles.buttonsBlock}>
+          <PillButton
+            label="Voir l'historique"
+            onPress={() => router.push('/stress/history')}
+            variant="ghost"
+            icon={<Ionicons name="time" size={16} color={Colors.white} />}
+          />
+          <PillButton
+            label="Enregistrer cette mesure"
+            onPress={handleSave}
+            variant="primary"
+          />
+        </View>
+      </View>
     </GradientScreen>
   );
 }
 
 const styles = StyleSheet.create({
   content: {
+    flex: 1,
     paddingHorizontal: Spacing.screenHorizontalPadding,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.xxl,
-    gap: Spacing.lg,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    justifyContent: 'space-between',
+  },
+  titleBlock: {
     alignItems: 'center',
+    gap: Spacing.xs,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
     color: Colors.white,
     textAlign: 'center',
+    lineHeight: 32,
   },
   dateText: {
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.white,
+    opacity: 0.8,
     textAlign: 'center',
   },
   emojiContainer: {
     alignItems: 'center',
-    marginVertical: Spacing.sm,
+  },
+  sliderBlock: {
+    gap: Spacing.md,
   },
   sliderLabel: {
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.white,
-    alignSelf: 'flex-start',
+  },
+  buttonsBlock: {
+    gap: Spacing.sm,
   },
 });
