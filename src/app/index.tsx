@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,16 +20,19 @@ function todayString(): string {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const [stressError, setStressError] = useState(false);
+  const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (errorTimer.current) clearTimeout(errorTimer.current); }, []);
 
   const handleStressPress = useCallback(async () => {
     const existing = await stressRepo.getByDate(todayString());
     if (existing) {
-      Alert.alert(
-        'Déjà enregistré',
-        "Vous avez déjà évalué votre stress aujourd'hui. Revenez demain pour une nouvelle mesure.",
-        [{ text: 'OK' }]
-      );
+      setStressError(true);
+      if (errorTimer.current) clearTimeout(errorTimer.current);
+      errorTimer.current = setTimeout(() => setStressError(false), 3000);
     } else {
+      setStressError(false);
       router.push('/stress');
     }
   }, []);
@@ -46,6 +49,7 @@ export default function HomeScreen() {
 
         {/* Central Logo Area */}
         <View style={styles.logoArea}>
+          <Text style={styles.appTitle}>Penss'</Text>
           <TouchableOpacity onPress={() => router.push('/new-event/step-1')} style={styles.logoContainer}>
             <Ionicons name="flash" size={60} color={Colors.white} />
           </TouchableOpacity>
@@ -69,6 +73,14 @@ export default function HomeScreen() {
             label="Évaluation du stress"
             onPress={handleStressPress}
           />
+          {stressError && (
+            <View style={styles.errorBanner}>
+              <Ionicons name="information-circle" size={16} color={Colors.white} style={{ marginRight: Spacing.xs }} />
+              <Text style={styles.errorText}>
+                Vous avez déjà évalué votre stress aujourd'hui. Revenez demain pour une nouvelle évaluation.
+              </Text>
+            </View>
+          )}
           <HomeMenuItem
             icon={<Ionicons name="bar-chart" size={24} color={Colors.white} />}
             label="Mes statistiques"
@@ -95,15 +107,30 @@ const styles = StyleSheet.create({
   },
   logoArea: {
     alignItems: 'center',
-    marginTop: Spacing.xxl + Spacing.lg,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  appTitle: {
+    color: Colors.white,
+    fontSize: 36,
+    fontWeight: '700' as const,
+    marginBottom: Spacing.lg,
+    letterSpacing: 1,
   },
   logoContainer: {
     width: 120,
     height: 120,
     borderRadius: 28,
     backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.6)',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
+    elevation: 12,
   },
   logoText: {
     ...Typography.body,
@@ -111,7 +138,20 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
   },
   menuList: {
-    marginTop: Spacing.xl,
     gap: Spacing.md,
+    paddingBottom: Spacing.md,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    borderRadius: 10,
+    padding: Spacing.sm,
+  },
+  errorText: {
+    ...Typography.body,
+    color: Colors.white,
+    flex: 1,
+    fontSize: 13,
   },
 });
