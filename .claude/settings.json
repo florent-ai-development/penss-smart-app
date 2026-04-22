@@ -13,7 +13,8 @@
       "Bash(npx tsc:*)",
       "Bash(npm install:*)",
       "Bash(npm info:*)",
-      "Bash(node -e \"const v=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); console.log\\(v.filter\\(x=>x.startsWith\\('4.'\\)\\).slice\\(-10\\).join\\('\\\\n'\\)\\)\")"
+      "Bash(node -e \"const v=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); console.log\\(v.filter\\(x=>x.startsWith\\('4.'\\)\\).slice\\(-10\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(npx expo *)"
     ],
     "additionalDirectories": [
       "/Users/Florent/Documents/projects/penss-smartphone-app/docs"

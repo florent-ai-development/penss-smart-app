@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { View, Text } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -29,28 +29,27 @@ export const StressSlider: React.FC<StressSliderProps> = ({
   rightLabel,
   readonly = false,
 }) => {
-  const sliderWidth = useRef(0);
-  const translateX = useSharedValue(((value - min) / (max - min)) * (sliderWidth.current || 0));
-
-  // Sync position when value is changed externally (e.g. reset after adding a thought)
-  useEffect(() => {
-    translateX.value = ((value - min) / (max - min)) * sliderWidth.current;
-  }, [value]);
+  const sliderWidth = useSharedValue(0);
+  const translateX = useSharedValue(-1); // -1 = not yet initialized
 
   const progress = useDerivedValue(() => {
-    return translateX.value / sliderWidth.current;
+    if (sliderWidth.value === 0) return (value - min) / (max - min);
+    return translateX.value / sliderWidth.value;
   });
 
   const animatedThumbStyle = useAnimatedStyle(() => {
+    const pos = sliderWidth.value === 0
+      ? ((value - min) / (max - min)) * 0
+      : translateX.value;
     return {
-      transform: [{ translateX: translateX.value - 14 }],
+      transform: [{ translateX: pos - 14 }],
       opacity: readonly ? 0.5 : 1,
     };
   });
 
   const animatedFillStyle = useAnimatedStyle(() => {
     return {
-      width: progress.value * sliderWidth.current,
+      width: progress.value * sliderWidth.value,
     };
   });
 
@@ -62,7 +61,7 @@ export const StressSlider: React.FC<StressSliderProps> = ({
       startX.value = translateX.value;
     })
     .onUpdate((event) => {
-      translateX.value = clamp(startX.value + event.translationX, 0, sliderWidth.current);
+      translateX.value = clamp(startX.value + event.translationX, 0, sliderWidth.value);
       const newValue = Math.round(min + progress.value * (max - min));
       runOnJS(onChange)(Math.max(min, Math.min(max, newValue)));
     });
@@ -72,8 +71,9 @@ export const StressSlider: React.FC<StressSliderProps> = ({
       <GestureDetector gesture={panGesture}>
         <View
           onLayout={(e) => {
-            sliderWidth.current = e.nativeEvent.layout.width;
-            translateX.value = ((value - min) / (max - min)) * sliderWidth.current;
+            const w = e.nativeEvent.layout.width;
+            sliderWidth.value = w;
+            translateX.value = ((value - min) / (max - min)) * w;
           }}
           style={{
             height: 14,
